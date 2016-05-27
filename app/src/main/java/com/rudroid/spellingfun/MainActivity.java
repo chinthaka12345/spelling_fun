@@ -7,6 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -15,7 +18,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, ImageButton.OnClickListener, TextWatcher{
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, ImageButton.OnClickListener, TextWatcher, OnGestureListener {
 
     private TextToSpeech tts;
     static final String Tag = "Spelling Main";
@@ -23,11 +26,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     // Todo
     ArrayList<FlashCard> cardSet = new ArrayList<FlashCard>();
     FlashCard currentCard;
+    int currentIdx = 0;
 
     ImageButton spellingSpkBtn;
     ImageButton descSpkBtn;
     TextView description;
     EditText spelling;
+    GestureDetector detector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,38 +43,25 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         descSpkBtn = (ImageButton) findViewById(R.id.descSpeakBtn);
         description = (TextView) findViewById(R.id.description);
         spelling = (EditText) findViewById(R.id.spelling);
+        spelling.setPrivateImeOptions("nm");
 
         spellingSpkBtn.setOnClickListener(this);
         descSpkBtn.setOnClickListener(this);
         spelling.setOnClickListener(this);
         spelling.addTextChangedListener(this);
 
-//        for(int i=0; i<10; i++) {
-        FlashCard card = new FlashCard();
-        card.Spelling = "January";
-        card.Description = "First month of the year.";
-        cardSet.add(card);
+        View view = this.findViewById(android.R.id.content);
+        detector=new GestureDetector(this, this);
 
-        FlashCard card2 = new FlashCard();
-        card2.Spelling = "February";
-        card2.Description = "Second month";
-        cardSet.add(card2);
+        Utils.loadCards(cardSet);
 
-        FlashCard card3 = new FlashCard();
-        card3.Spelling = "March";
-        card3.Description = "Third month";
-        cardSet.add(card3);
-
-//        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         tts = new TextToSpeech(this, this);
-
-        // // TODO: 16/05/22
-        nextCard(0);
+        nextCard(currentIdx);
     }
 
     @Override
@@ -109,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void nextCard(int index) {
         currentCard = cardSet.get(index);
         description.setText(currentCard.Description);
+        spelling.setText("");
     }
 
     @Override
@@ -128,6 +121,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
     }
 
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // TODO Auto-generated method stub
+        //Registering TouchEvent with GestureDetector
+        return detector.onTouchEvent(event);
+    }
+
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -141,11 +142,62 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     public void afterTextChanged(Editable s) {
         if(currentCard.Spelling.regionMatches(true, 0, spelling.getText().toString(), 0, spelling.getText().length())) {
-            Log.d(Tag, "correct");
             spelling.setTextColor(Color.rgb(76, 153, 0));
         } else {
             spelling.setTextColor(Color.rgb(204, 0, 0));
         }
 
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+
+        float sensitivity = 100;
+        // Left swipe
+        if(e1.getX() - e2.getX() > sensitivity){
+            if(currentIdx < cardSet.size()-1) {
+                currentIdx++;
+            } else {
+                currentIdx = 0;
+            }
+            nextCard(currentIdx);
+            return true;
+        }
+        // Right swipe
+        else if(e2.getX() - e1.getX() > sensitivity){
+            if(currentIdx > 0) {
+                currentIdx--;
+            } else {
+                currentIdx = cardSet.size()-1;
+            }
+            nextCard(currentIdx);
+            return true;
+        }
+
+        return false;
     }
 }
