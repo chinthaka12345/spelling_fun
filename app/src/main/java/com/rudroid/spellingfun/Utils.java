@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by chaminda on 16/05/25.
@@ -48,5 +49,32 @@ public class Utils {
             e.printStackTrace();
         }
 
+    }
+
+    // Get random number between min & max
+    public static int randomNumber(int min, int max) {
+        Random rand = new Random();
+        return rand.nextInt((max - min) + 1) + min;
+    }
+
+    // Implementing Fisher–Yates shuffle
+    public static ArrayList<Integer> shuffleArray(int size)
+    {
+        ArrayList<Integer> shuffled = new ArrayList<>();
+        for(int i=0; i<size; i++) {
+            shuffled.add(i);
+        }
+
+        Random rnd = new Random();
+        for (int i = size - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            // Simple swap
+            int a = shuffled.get(index);
+            shuffled.set(index, shuffled.get(i));
+            shuffled.set(i, a);
+        }
+
+        return shuffled;
     }
 }

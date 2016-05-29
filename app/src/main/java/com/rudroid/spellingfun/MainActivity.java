@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 break;
 
             case R.id.descHint:
+                descHintReq();
                 break;
 
             case R.id.spellHint:
@@ -237,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         if(lowerInput.length() <= lowerSpell.length()) {
             loopLen = lowerInput.length();
         } else {
+            lowerInput = lowerInput.substring(0, lowerSpell.length());
             loopLen = lowerSpell.length();
         }
 
@@ -247,6 +249,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             }
         }
 
+        // Spell : input => down : downaaa
+        if(idx >= lowerSpell.length()) {
+            idx = lowerSpell.length()-1;
+        }
+
         hintWord = lowerSpell.substring(0, idx+1);
         spelling.setText(hintWord);
 
@@ -254,7 +261,23 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     }
 
+    private void descHintReq() {
+
+        if(currentCard.Description.length() == 0) {
+            int length = currentCard.Spelling.length();
+            ArrayList<Integer> shuffeled = Utils.shuffleArray(length);
+            String shuff = "";
+
+            for(int i=0; i<length; i++) {
+                shuff += currentCard.Spelling.charAt(shuffeled.get(i)) + " ";
+            }
+
+            currentCard.Description = shuff;
+            description.setText(currentCard.Description);
+        }
+    }
+
     private void spellDone() {
-        tts.speak("You have done.", TextToSpeech.QUEUE_FLUSH, null);
+        tts.speak("You did it.", TextToSpeech.QUEUE_FLUSH, null);
     }
 }
