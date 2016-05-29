@@ -11,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     TextView description;
     EditText spelling;
     GestureDetector detector;
+    Button spellHint;
+    Button descHint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +46,16 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         descSpkBtn = (ImageButton) findViewById(R.id.descSpeakBtn);
         description = (TextView) findViewById(R.id.description);
         spelling = (EditText) findViewById(R.id.spelling);
-        spelling.setPrivateImeOptions("nm");
+        spellHint = (Button) findViewById(R.id.spellHint);
+        descHint = (Button) findViewById(R.id.descHint);
 
+        spelling.setPrivateImeOptions("nm");
         spellingSpkBtn.setOnClickListener(this);
         descSpkBtn.setOnClickListener(this);
         spelling.setOnClickListener(this);
         spelling.addTextChangedListener(this);
+        spellHint.setOnClickListener(this);
+        descHint.setOnClickListener(this);
 
         View view = this.findViewById(android.R.id.content);
         detector=new GestureDetector(this, this);
@@ -114,6 +121,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
             case R.id.descSpeakBtn:
                 speakIt(currentCard.Description);
+                break;
+
+            case R.id.descHint:
+                break;
+
+            case R.id.spellHint:
+                spellHintReq();
                 break;
 
             default:
@@ -199,5 +213,48 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
 
         return false;
+    }
+
+    private void init() {
+
+
+    }
+
+    private void spellHintReq() {
+
+        int loopLen = 0;
+        String hintWord = "";
+
+        Log.d(Tag, "count "  + " : "  + spelling.getText().toString()) ;
+        String lowerSpell = currentCard.Spelling.toLowerCase();
+        String lowerInput = spelling.getText().toString().toLowerCase();
+
+        if(lowerInput.compareTo(lowerSpell) == 0) {
+            spellDone();
+            return;
+        }
+
+        if(lowerInput.length() <= lowerSpell.length()) {
+            loopLen = lowerInput.length();
+        } else {
+            loopLen = lowerSpell.length();
+        }
+
+        int idx = 0;
+        for(idx=0; idx<loopLen; idx++) {
+            if((lowerSpell.charAt(idx)) != lowerInput.charAt(idx)) {
+                break;
+            }
+        }
+
+        hintWord = lowerSpell.substring(0, idx+1);
+        spelling.setText(hintWord);
+
+        spelling.setSelection(idx+1);
+
+    }
+
+    private void spellDone() {
+        tts.speak("You have done.", TextToSpeech.QUEUE_FLUSH, null);
     }
 }
